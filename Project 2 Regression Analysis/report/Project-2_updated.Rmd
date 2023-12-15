@@ -1,0 +1,271 @@
+---
+title: "Prediction of Tracheostomy or Death in Neonates with Severe Bronchopulmonary Dysplasia: Based on Respiratory Parameters at 36-week Postmenstrual Age"
+subtitle: "Project 2: Regression Analysis^[This project is a collaboration with Dr. Chris Schmid in the Department of Biostatistics, Brown University School of Public Health. The instructor is Dr. Alice Paul from Department of Biostatistics, Brown University School of Public Health.]"
+author: "Haiyue Song"
+date: "`r Sys.Date()`"
+output: 
+  pdf_document:
+    latex_engine: xelatex
+    keep_tex: true
+urlcolor: blue
+header-includes: 
+  - \usepackage{setspace}\onehalfspacing
+  - \usepackage{titling}
+  - \pretitle{\begin{centering}\Large\bfseries}
+  - \posttitle{\end{centering}}
+  - \usepackage{pdflscape}
+  - \usepackage{abstract}
+fontsize: 10pt
+abstract: >
+ \singlespacing \textbf{Background:} Tracheostomy placement in infants suffering from severe bronchopulmonary dysplasia presents a clinical challenge due to the absence of clear indication criteria and optimal timing. Previous studies predicting the likelihood of tracheostomy placement or mortality have utilized only baseline demographic information and clinical diagnoses without considering comprehensive respiratory parameters at various postmenstrual ages. This study aims to address this research gap by incorporating respiratory parameters at 36-week postmenstrual ages to predict tracheostomy or death in infants with severe bronchopulmonary dysplasia [@paul_project_2023].\par
+ \textbf{Methods:} The data is a national data set of birth, demographic, diagnostic, and respiratory parameters of infants with severe bronchopulmonary dysplasia admitted to collaborative NICUs and with known respiratory support parameters at 36-week postmenstrual ages. Variables with a high proportion of missing data were excluded, and the remaining were imputed using multiple imputation techniques. Fixed-effect and mixed -effect logistic regression models were developed to predict the likelihood of tracheostomy or death, applying two variable selection methods: best subset selection and Lasso regularization.\par
+ \textbf{Results:} A total of 985 records were included in the final analysis, with 80% (N=794) for training and 20% (N=191) for testing. The final models, including one fixed-effect model for usage within existing facilities and another mixed-effect model for broader application, demonstrated excellent performance. The inclusion of diagnostic and respiratory parameters at 36-week PMA proved valuable for predicting the likelihood of tracheostomy or mortality. The fixed-effect model achieved an area under the curve of 0.9106, with sensitivity of 0.8485, specificity of 0.8582, accuracy of 0.8565. The mixed-effect model achieved an area under the curve of 0.9079, , with sensitivity of 0.8303, specificity of 0.8620, accuracy of 0.8565. \par
+ \textbf{Conclusions:} The models incorporating respiratory parameters at 36-week postmenstrual ages provide an earlier and more accurate prediction of the need for tracheostomy in infants with severe BPD at early postmenstrual ages. This has potential implications for counseling families, optimizing tracheostomy placement, and improving infant growth outcomes.\par
+ \textbf{Keywords: Tracheostomy, Regression Analysis, Respiratory Parameters}
+geometry: margin=1in
+spacing: onehalf
+csl: american-statistical-association.csl
+bibliography: references.bib
+link-citations: yes
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,
+                      message = FALSE,
+                      warning = FALSE, 
+                      fig.align="center")
+options(knitr.kable.NA = '')
+```
+
+```{r}
+library(tidyverse) # version 1.3.2
+library(kableExtra) # version 1.3.4
+library(gtsummary) # version 1.7.2
+library(latex2exp) # version 0.9.6
+library(ggpubr) # version 0.4.0
+```
+
+# 1. Introduction
+Tracheostomy placement in infants suffering from severe bronchopulmonary dysplasia (sBPD) presents a clinical challenge, compounded by the absence of clear indication criteria and optimal timing. Research indicates potential growth benefits from performing tracheostomies earlier in infants [@zhang_improved_2018]. Prior studies conducted on large databases have demonstrated that it is possible to make accurate predictions regarding the probability of tracheostomy placement or mortality by utilizing baseline demographic information and clinical diagnoses. However, these analyses have not incorporated comprehensive respiratory parameters and have not provided predictions for various postmenstrual ages (PMA) [@paul_project_2023].
+
+This gap indicates the need for a refined predictive model that can incorporate comprehensive respiratory parameters for prediction of tracheostomy at an early PMA. Our approach involves developing a logistic regression model with proper variable selection methods utilizing a national dataset of demographic, diagnostic, and respiratory parameters of infants admitted to NICUs. The success of our final models, including one fixed-effect model for usage within existing facilities and another mixed-effect model for broader application, marks a significant advancement in predicting tracheostomy among families with sBPD infants.
+
+# 2. Methods
+
+## 2.1. Study Setting and Population
+
+The data is a national data set of birth, demographic, diagnostic, and respiratory parameters of infants with sBPD admitted to collaborative NICUs and with known respiratory support parameters at 36-week and 44-week PMA [@paul_project_2023; @mckinney_predicting_2023]. The data set includes infants born at most 32 weeks PMA and was collected from retrospective case-control study across 10 centers of the sBPD collaborative. The outcome of interest is tracheostomy placing prior to discharge or death; as the number of cases for each is very small, we decided to consider the combined negative outcomes.
+
+Data are collected at four time points: birth, 36-week PMA, 44-week PMA and discharge. At the time of birth, the birth weight, the gestational age, the birth length and head circumference, the delivery method, the maternal race, the maternal ethnicity, the infant gender, then use of prenetal steriods, the use of maternal chorioamnionitis, if the infant was small for gestational age, if the infant received any surfactant within 72 hours after birth were collected. At 36-week PMA and 44-week PMA, the weight, ventilation support level, fraction of inspired oxygen needed, peak inspiratory pressure, positive and exploratory pressure, medication for pulmonary hypertension were collected separately. Prior to the time of discharge, outcomes of tracheostomy placing (trach) or death were collected; the gestational age was collected at discharge as well.
+
+From an initial 999 observations, duplicates were removed, leaving 996 entries. Two records with missing death data from different centers were excluded as it is reasonable to assume they are missing at random based on exploratory analysis. Missingness of center was addressed by complete record ID data consisting center information. A binary outcome variable was created to denote trach or death occurrences. Maternal race was omitted from the analysis due to coding clarity issues, and some complete prenatal steroid data gaps were filled based on negative corticosteroid responses. Surfactant data within the first 72 hours post-birth, missing in 43.46% of cases, was excluded from model fitting as it showed no significant association with the outcomes ($p=0.123$ from Pearson's chi-square test), indicating less likely contribution to outcome prediction. Parameters from 44-week PMA were also excluded due to their high missingness and the NHLBI's (2018) BPD definition reliance on 36-week PMA parameters [@mckinney_predicting_2023]. Centers (i.e., center 20 and center 21) with insufficient data were dropped due to limitation of statistical power with few sample size. Records with implausible gestational ages at discharge (i.e., greater than 300 weeks, which are inpatients for 6 years) were considered outliers and removed. The other missingness is kept and will be address by multiple imputation in Section 2.3. We created dummy variables for categorical data and use the continuous variables themselves. 
+
+```{r}
+# summary statistics (data collected at birth) by outcome
+tbl2 <- readRDS("tbl2.RDS")
+tbl2 %>%
+  modify_header(label="**Variable**") %>%
+  as_kable_extra(booktabs=TRUE,escape=TRUE, 
+                 caption="Summary Statistics for Data Collected at Birth by Outcome") %>%
+  kable_styling(
+    latex_options = c("repeat_header","scale_down","striped")
+  ) 
+```
+
+Table 1 using the *gtsummary* package [@baraldi_introduction_2010] provides a comparative summary of the baseline characteristics collected at birth from these 985 neonates, grouped by the outcome of interest - trach or death (N = 181) versus neither (N = 804). There is no signficant difference of maternal ethnicity ($p=0.3$), gestational age ($p=0.5$), complete prenatal steroids ($p=0.2$), maternal chorioamnionitis ($p>0.9$), gender between the groups of two outcomes ($p=0.6$). There is a statistically significant difference in birth weight that infants with neither trach nor death having more average weight (816.21g) than those with either trach/death (759.47g, $p < 0.001$). This indicates that lower birth weight may be a risk factor for adverse outcomes. Similarly, birth length showed a significant difference ($p = 0.003$), with longer infants less likely to have trach/death. Head circumference also followed this trend (p = 0.018), further supporting the importance of infant growth metrics as predictors of the outcome. Delivery method displayed significant variation, with vaginal deliveries being more prevalent in the group with no trach or death ($p = 0.031$). The usage of prenatal corticosteroids was significantly higher in the group that experienced trach or death ($p = 0.022$). There is significantly higher proportion of infants classified as small for gestational age (SGA) in the trach/death outcome group versus no trach/death group (34% vs. 18%, $p < 0.001$), highlighting SGA as a potential indicator of risk for trach/death. Moreover, the mean hospital discharge gestational age was substantially higher for the trach or death group (73.74 days), compared to those without such outcomes (47.82 days, $p < 0.001$), implying a longer hospital stay and possibly more complex postnatal course for those with adverse outcomes.
+
+Table 2 shows the diagnostic and respiratory parameters of infants at 36-week PMA. All p-values are less than 0.001, showing these characteristics at 36-week PMA are all signficantly different between the trach/death group and the no trach/death group. Similar as the weight measured at birth, the weight at 36 weeks for infants in the no trach or death group had a higher mean weight (2141.49g) than infants in the trach or death group(1989.12g, $p < 0.001$). Ventilation support levels at 36 weeks PMA shows obvious differences. Infants who did not experience trach or death has higher proportion of no respiratory support or supplemental oxygen than infants with trach/death (14% vs. 4.4%, $p < 0.001$). In contrast, a larger fraction of infants with trach/death outcomes need invasive positive pressure (74% vs. 17%, $p < 0.001$), indicating the level of respiratory support may contribute to the outcome signficantly. In terms of respiratory parameters, the fraction of inspired oxygen at 36 weeks was significantly higher in the trach or death group ($p < 0.001$); the peak inspiratory pressure and the positive and exploratory pressure at 36 weeks also show this trend, with the trach or death group requiring higher pressures ($p < 0.001, p < 0.001$). Additionally, the use of medication for pulmonary hypertension at 36 weeks was significantly more prevalent among those with trach or death (20% vs. 4.0%, $p < 0.001$), emphasizing the potential influence of pulmonary vascular disease in the outcome of trach or death. These findings emphasize these diagnostic and respiratory parameters of infants at 36-week PMA may be strong predictors of the outcome. 
+
+```{r}
+# summary statistics (data collected at 36-week PMA) by outcome
+tbl3 <- readRDS("tbl3.RDS")
+tbl3 %>%
+  modify_header(label="**Variable**") %>%
+  as_kable_extra(booktabs=TRUE,escape=TRUE,
+                 caption="Summary Statistics for Data Collected at 36-week PMA by Outcome") %>%
+  kable_styling(
+    latex_options = c("repeat_header","scale_down","striped")
+  )
+  # ) %>%
+  # landscape()
+```
+
+```{r}
+# summary statistics by center
+tbl4 <- readRDS("tbl4.RDS")
+tbl4 %>%
+  modify_header(label="**Variable \ Center**") %>%
+  as_kable_extra(booktabs=TRUE,escape=TRUE,
+                 caption="Summary Statistics by Center") %>%
+  kable_styling(
+    latex_options = c("repeat_header","scale_down","striped")
+  )%>%
+  landscape()
+```
+Table 3 shows the summary statistics stratified by center. We can see that most of variables show significant differences between at least a pair of centers, which indicates including center in our model is essential. We observed distinct patterns of missingness across different centers, showing center-specific data management practices or reporting standards. For maternal ethnicity, center 7 had 27 of 32 records missing, whereas other centers had significantly lower proportions; center 12 reported nearly half of the birth length and head circumference data missing, about 35% missing steroid data, and approximately 30% to 50% missing diagnostic and respiratory parameters at 36-week PMA. Centers 1 and 3 each had around 40% to 45% missing values for maternal chorioamnionitis. All hospital discharge gestational age records were missing for center 4, and nearly all (98.46%) were missing for center 1. 
+
+## 2.2. Train-Test Split
+
+We conducted train-test split before multiple imputation. We use stratified sampling method to select 80% records (N=794) in the training data and 20% records (N=191) in the test data. The stratification is based on the interaction of outcome and centers to assess the balance of not only the positive and negative outcome but also the centers. 
+
+## 2.3. Missing Data and Multiple Imputation
+Tables 1 and 2 show that several covariates have a non-negligible proportion of missing values, with the peak inspiratory pressure at 36 weeks PMA having the highest with 125 (12.69%) missing entries. From Table 3, we observed distinct patterns of missingness across different centers. 
+
+Instead of using a deletion method, which could introduce bias and reduce statistical power due to a smaller sample size [@baraldi_introduction_2010], we opted for multiple imputation to fill in gaps before proceeding with model derivation, assuming that the missing data is random (MAR) [@rubin_inference_1976; @rubin_multiple_2018]. This assumption is reasonable, as we see strong correlations between variables, making imputation conditioning on existing data promising.
+
+As I mentioned previously, we observed distinct patterns of missingness across different centers. These variations in missing data underscore the necessity for multiple imputation including the center variable. Record ID was excluded from the imputation. We performed multiple imputation on the training data using the *mice* function [@buuren_mice_2011], generating five complete datasets using the mice function. This imputation method was then consistently applied to the test data, resulting in five complete test datasets.
+
+## 2.4. Model Derivation
+After preprocessing, each imputed dataset contains 19 potential predictors for a binary outcome: trach or death versus neither trach nor death. We aim to build a logistic regression model. As there are 19 predictors and more will be generated after one-hot encoding and considering the interaction terms, variable selection methods are implemented for model simplification and reducing the possibility of overfitting. Two variable selection methods are considered as they are typical and efficient: best subset selection [@beale_discarding_1967], a classical method of selecting the optimal subset of predictors for fitting the outcome, and the least absolute shrinkage and selection operator (Lasso) that utilizes L1 norm regularization in the penalized likelihood function [@tibshirani_regression_1996]. Our goal is to use these methods to create efficient models for predicting the outcome.
+
+As there are differences among centers seen in Table 3, we considered include center indicators in models. Fixed effect for centers are simplier on implementation and easier to intrepret to non-technical audience, while it only ensures prediction among these existing centers, making model without generalizability to extensive population. Random effect for centers in mixed-effect model addresses the multilevel structure based on centers and it is available to be generalized to the other centers' population. 
+
+### 2.4.1. Interaction Terms
+The previous study from @truog_predicting_2014 only considered the main effect model. However, we conduct multivariate exploratory analysis here and consider to include some interaction terms in the model. By ANOVA testing, we found that the level of gestational age, delivery method, prenatal corticosteroids, infant's gender, whether infant is small for gestational age, weight at 36 weeks, fraction of inspired oxygen at 36 weeks, peak inspiratory pressure at 36 weeks and positive and exploratory pressure at 36 weeks and the use of medication for pulmonary hypertension at 36 weeks may modify the effect of ventilation support level at 36 weeks to the outcome. Therefore, we consider to include relevant interaction terms in variable selection procedure; variable selection methods selects proper predictors in the final model. 
+
+### 2.4.2. Fixed-effect Model with Best Subset Selection
+After obtaining five imputed complete training datasets, we apply best subset logistic regression with tenfold cross-validation to minimize the cross-validation loss function for each imputed dataset. We use the *L0Learn* package [@hazimeh_l0learn_2023], which is based on the mixed integer optimization formulation [@dedieu_learning_2021].
+
+The variable selection process may yield different subsets of predictors for the five imputed datasets, and we need to combine the five best subsets in one final best subset. @wood_how_2008 proposed three ad hoc rules for finalizing selection after identifying the best subset of predictors in each imputed dataset [@du_variable_2020]: Method 1 is to take the union of these five subsets, meaning any predictor appearing in any model will be in the final subset; method 2 is to include predictors appearing in at least half (i.e., three) of the models; method 3 is to include only the predictors that appear in all models. We use these methods to consolidate five best subsets into three final subsets. We then refit the logistic regression model using only the final subset of predictors to the five imputed datasets. The final coefficients with their confidence intervals are aggregated across the five refitted models using Rubin's rule [@rubin_multiple_2018]. We thus obtain three fixed-effect best subset logistic regression models.
+
+### 2.4.3. Fixed-effect Model with Lasso Variable Selection
+In contrast to the best subset selection, Lasso regression employs L1 norm regularization to shrink some coefficients to zero, thereby excluding variables from the model. This regularization strength is controlled by a tuning parameter $\lambda$. As $\lambda$ increases, more coefficients are set to zero, leading to sparser models. We use tenfold cross-validation to determine the optimal tuning parameter $\lambda$ for each imputed training dataset, and refit the logistic Lasso regression to each training dataset. We use the three methods from @wood_how_2008 and Rubin's rule [@rubin_multiple_2018] for combining coefficients.  Method 1 is simply taking the average of all coefficients, which means a coefficients is non-zero in any model will be in the final Lasso model; method 2 is taking the average of coefficients that are non-zero in at least a half (i.e., three) of the models; method 3 is taking the average of coefficients that are non-zero across five imputed data sets. We finally have three fixed-effect logistic lasso regression models. 
+
+### 2.4.4. Mixed-effect Model with Selected Variables
+We also considered mixed-effect model to address the multilevel structure clustered by center. As we have selected predictors from best subset and Lasso model in Section 2.3.2 and Section 2.3.3, and we will apply the variable selection results to the mixed-effect model. 
+
+## 2.5. Model Performance
+Models are evaluated for their discrimination and calibration on the test data. We firstly optimized the threshold for classification by selecting the optimal threshold that makes the point (1-specificity, sensitivity) on the ROC curve have the closest Euclidean distance to $(0,1)$, on training data. This method minimizes the distance to the "perfect classification" point $(0,1)$ on the ROC curve on training data. Based on optimized threshold, we evaluated model discrimination on test data using the receiver operating characteristic curve (ROC curve), area under the ROC Curve (AUC), sensitivity, specificity, accuracy, and precision. Model calibration is assessed by brier score and the calibration plot on test data, which visualizes how close our estimated distribution and true distribution are to each other [@paul_health_2023].
+
+# 3. Results
+```{r}
+# show coefficients
+combined_coef_bs <- readRDS("coefficients_bs.RDS")
+combined_coef_lasso <- readRDS("coefficients_lasso.RDS")
+combined_coef_mm <- readRDS("coefficients_mm.RDS")
+combined_coef <- bind_rows(combined_coef_bs,combined_coef_mm[1,],
+                           combined_coef_lasso,combined_coef_mm[2,]) %>% t()
+# rownames(combined_coef)<- c("Intercept","Gestational Age","Birth Head Circumference (cm)",
+#                     "Prenatal Corticosteroids: Yes","Weight at 36 weeks (g)",
+#                     "Ventilation Support Level at 36 weeks: 3",
+#                     "Fraction of Inspired Oxygen at 36 weeks",
+#                     "Medication for Pulmonary Hypertension at 36 weeks",
+#                     "Hospital Discharge Gestational Age",
+#                     "Ventilation Support Level at 36 weeks: 2",
+#                     "Center: 2","Center: 3","Center: 4","Center: 5","Center: 7",
+#                     "Center: 12","Center: 16", "Maternal Ethnicity: Not Hispanic or Latino",
+#                     "Birth Weight (g)","Complete Prenatal Steroids: Yes",
+#                     "Maternal Chorioamnionitis: Yes",
+#                     "Small for Gestational Age: Yes",
+#                     "Delivery Method: Cesarean section",
+#                     "Peak Inspiratory Pressure (cmH2O) at 36 weeks")
+combined_coef %>%
+  kable(booktabs=TRUE,escape=TRUE,
+                 caption="Model Coefficients",
+        col.names = rep(c("Times","M1","M2","M3","Mixed-Effect"),2)) %>%
+  add_header_above(c("","Best Subset (Fixed-Effect)"=4,"Best Subset"=1,
+                     "Lasso (Fixed-Effect)"=4,"Lasso"=1)) %>%
+  column_spec(c(3,6), bold=T) %>%
+  kable_styling(latex_options = c("repeat_header","scale_down","striped")) %>%
+  footnote(threeparttable = TRUE,
+  general="Blank cells in the table indicate that the variables are never selected in that senario. Times: times of variable appeared in five models from five imputed training data. M1: Method 1. M2: Method 2. M3: Method 3. Ventilation Support Level at 36 weeks: 2 is the indicator of Non-invasive positive pressure compared to No respiratory support or supplemental oxygen; 3 is the indicator of Invasive positive pressure compared to No respiratory support or supplemental oxygen. The coefficients of the final models are bold. For best subset model, when we include the interaction terms, the relevant main effect terms are also included in the model.") 
+```
+## 3.1. Model Coefficients
+Table 4 shows the times of variable selected by best subset and lasso regression fixed-effect models in five imputed training data and the coefficients under three combination methods defined in Section 2.4. We can see that the variables finally included in the best subset models are less than those from lasso regression models. 
+
+The most consistent predictors are the interaction of ventilation support level and gender, the interaction of ventilation support level and medication for pulmonary hypertension at 36 weeks. They have non-zero coefficients across all models, which indicating they essentially contribute to the outcome prediction. This also validate the importance of including possible interaction terms in the model. And this shows the importance of the diagnostic and respiratory parameters of infants at 36-week PMA to the prediction of trach/death. Most of coefficients for center indicators are non-zeros across imputed data sets, which also indicates potential variability in patient populations by different medical centers could influence outcomes. 
+
+Table 4 also shows the fixed-effect part of mixed-effect models with variables selected by M2 from best subset and Lasso. We can see the importance of the diagnostic and respiratory parameters of infants at 36-week PMA to the prediction of trach/death. This finding reinforced the utility of these diagnostic and respiratory parameters at 36-week PMA in predicting trach/death, thereby addressing the research gap mentioned in Section 1.
+
+The random intercept for best subset follows $N(\mu_{bs},1.519)$ and the random intercept for Lasso follows $N(\mu_{lasso},2.125)$ pooled by Rubin's Rule [@rubin_multiple_2018]. The details of $\mu_{bs}$ and $\mu_{lasso}$ are in Table 6 and Table 7 in Appendix. 
+
+## 3.2. Model Performance
+Evaluation metrics for models shown in Table 4 are displayed in Table 5. We used the optimal threshold from training data for classification. We can see that, generally, the model from pooling method 1 and method 2 outperforms the model with same variable selection method under pooling method 3;  while model from pooling method 1 performed nearly equally well as pooling method 2. Sometimes, the model under pooling method 2 outperforms pooling method 1, which indicating the over-fitting exists under pooling method 1. For fixed-effect models, the best subset pooled by method 2 outperforms the other models, while the best subset pooled by method 1 has a higher sensitivity, indicating clinicians can find more proportion of the infants with higher risk of trach/death in practice. For mixed-effect models, the model based on variables from best subset variable selection with pooling method 2 has better performance. 
+
+We finally decides the best subset pooled by method 1 with higher sensitivity as the final fixed-effect model. The AUC on test is 0.9106 (95% CI: 0.8882-0.9331), with sensitivity of 0.8485, specificity of 0.8582, accuracy of 0.8565, precision of 0.5556 and the Brier score of 0.0870. And the mixed-effect model based on variables from best subset variable selection with pooling method 2 is the final mixed-effect model. The AUC on test is 0.9079 (95% CI: 0.8845-0.9313), with sensitivity of 0.8303, specificity of 0.8620, accuracy of 0.8565, precision of 0.5569, and Brier score of 0.0865. The coefficients for the final models are bold in Table 4.
+
+The ROC curves are shown in Figure 1. We can see that both the fixed-effect models and the mixed-effect models show great performance on ROC curves. The plot also validates the importance of threshold optimization. 
+
+```{r}
+# evaluation metrics
+combined_eva_lasso <- readRDS("evaluation_lasso.RDS")
+combined_eva_bs <- readRDS("evaluation_bs.RDS")
+combined_eva_mm <- readRDS("evaluation_mm.RDS")
+cbind(combined_eva_bs,combined_eva_mm[,1],combined_eva_lasso,combined_eva_mm[,2])%>%
+  kable(booktabs=TRUE,escape=TRUE, align="c",
+                 caption="Evaluation Metrics for Best Subset and Lasso Regression",
+        col.names = rep(c("M1","M2","M3","Mixed-Effect"),2)) %>%
+  add_header_above(c("","Best Subset (Fixed-Effect)"=3,"Best Subset"=1,
+                     "Lasso (Fixed-Effect)"=3,"Lasso"=1)) %>%
+  column_spec(c(1,2,5), bold=T) %>%
+  kable_styling(latex_options = c("repeat_header","striped"))
+```
+
+```{r,fig.cap="ROC curves for models excluding/including center",out.width="80%",out.height="80%"}
+# ROC curves
+roc_data_lasso <- readRDS("roc_lasso.RDS")
+roc_data_bs <- readRDS("roc_bs.RDS")
+roc_data_mm <- readRDS("roc_mm.RDS")
+roc_data <- rbind(roc_data_lasso,roc_data_bs,roc_data_mm)
+
+# plot ROC curves for models on one canvas using ggplot2
+ggplot(roc_data, 
+       aes(x = FPR, y = TPR, color = model)) +
+  geom_line() +
+  geom_abline(intercept = 0, slope = 1, color = "grey", linetype = "dashed") +
+  facet_wrap(~center) +
+  labs(x = "False Positive Rate", y = "True Positive Rate") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme_minimal()+
+  theme(legend.position = "bottom")+
+  theme(legend.text = element_text(size = 8),          # Change legend text size
+          legend.title = element_text(size = 10))  
+```
+```{r,fig.cap="Calibration Plot for Final Models",out.width="80%",out.height="80%"}
+cp_bs<- readRDS("calibraion_bs.RDS")
+cp_mm<- readRDS("calibraion_mm.RDS")
+ggarrange(cp_bs,cp_mm)
+```
+The calibration plots for the best models are shown in Figure 2. It is created from the estimated standard error to create corresponding 95% confidence intervals plot for the observed vs expected proportions. Overall, the plot shows that our models could be better calibrated. The observed proportions have higher variances in the middle range of probabilities, indicating less certainty about the calibration in this region. The points with error bars show that for lower predicted probabilities, the observed frequencies are higher than expected, indicating underestimation of risk. On the contrary, for higher predicted probabilities, the points align lower than the diagonal, suggesting overestimation of risk of trach/death. For best subset fixed-effect model, the calibration in the range of probabilities around 0.35 to 0.4 is relevantly poor; for the best subset mixed-effect model, the calibration in the range of probabilities around 0.6 to 0.65 is relevantly poor. The calibration plot shows the final models need better calibration. 
+
+# 4. Discussion
+In our study, we construct logistic regression models with baseline characteristics, diagnostics, respiratory parameters at 36-week PMA with some possible interaction terms to predict tracheostomy or death in infants with sBPD. Initial exploratory analysis indicated certain covariates' strong unadjusted marginal association with outcomes. We then applied best subset selection and Lasso for robust variable selection in logistic regression modeling for fixed-effect models and then applied the variable selection results to mixed-effect model. Different methods are applied to each imputed training data and pooled by three methods. We then evaluate the model performance on the test data based on their discrimination and calibration. 
+
+We discussed final models in Section 3.2, and selected the best subset fixed-effect model and best subset mixed-effect model. The fixed-effect one outperforms the mixed-effect one slightly. Therefore, our final model selection strategy varies depending on the intended application: for new centers, we chose the best subset mixed-effect model for generalizability, while for existing centers, we selected best subset fixed-effect model. The final models are pooled by including all non-zero coefficients across five imputed training data. We found that both best subset fixed-effect model and best subset mixed-effect model performed well, with high sensitivity, specificity and accuracy, indicating clinicians leverage these models to find the infants with higher risk of trach/death in practice. The ROC curves with evaluation metrics show the model's great performance, while the calibration plots show the calibration around the middle range of probabilities is relevantly poor. Besides, we would also be interested in look at the model performance in different populations with transportability and generalizability analysis.
+
+However, there are some limitations of our study. Firstly, we used multiple imputation assuming the data is MAR, which means the missing values can be predicted from the observed data. This assumption is untestable, and may be not hold if the data is missing not at random (MNAR), potentially affecting our estimates. Secondly, including interaction terms increased the complexity of the models. Simplier models might be considered for use in practice. Additionally, we do not conduct group k-fold cross-validation, remaining the generalizability invalidated. Future studies should include more analysis with group k-fold cross-validation, cluster bootstrap, and sensitivity analysis to validate the model's generalizability. 
+
+# 5. Conclusions
+In this study, we used baseline characteristics, diagnostics, and respiratory parameters at 36-week PMA to predict tracheostomy or death in infants with sBPD. We applied best subset selection and Lasso for variable selection in fixed-effect and mixed-effect logistic regression modeling. The final models include the best subset fixed-effect model for prediction within known medical centers and best subset mixed-effect model for prediction generalized to new medical centers. Both final models show great performance for tracheostomy or death prediction. It provides accurate prediction of need for tracheostomy for infants with sBPD at early PMA, which would have implications for counseling families and tracheostomy placement. 
+
+\pagebreak
+
+# References
+
+\singlespacing
+
+::: {#refs}
+:::
+
+\newpage
+# Appendix
+```{r}
+coef_center_lasso <- readRDS("coef_center_lasso.RDS")
+coef_center_lasso  %>%
+  round(2)%>%
+  kable(booktabs=TRUE,escape=TRUE, align="c",
+                 caption="Mean of Random Effects of Mixed-Effect Lasso") %>%
+  kable_styling(latex_options = c("repeat_header","striped",'hold_position'))
+coef_center_bs <- readRDS("coef_center_bs.RDS")
+coef_center_bs %>%
+  round(2)%>%
+  kable(booktabs=TRUE,escape=TRUE, align="c",
+                 caption="Mean of Random Effects of Mixed-Effect Best Subset") %>%
+  kable_styling(latex_options = c("repeat_header","striped",'hold_position'))
+```
+
+\newpage
+# Code Appendix
+All code is compatible with R version 4.1.2, and can be found in the *Project 2 Regression Analysis* folder at [Github](https://github.com/haiyuesong/PHP2550-Final-Portfolio).
+
+Code for generating this report is called `Project-2_updated.Rmd`; the pre-processing code can be found in a separate file called `pre_processing_EDA_updated.R`; the code for best subset selection can be found in a separate file called `best_subset_updated.R`; the code for Lasso regression can be found in a separate file called `lasso_updated.R`; the code for multilevel models can be found in a separate file called `multilevel.R`.
+
