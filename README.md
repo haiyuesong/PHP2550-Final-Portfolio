@@ -1,5 +1,5 @@
 # PHP2550 Practical Data Analysis: Final Portfolio
-## Description
+This is the final portfolio of three projects from PHP2550 Practical Data Analysis. 
 
 ## Project 1
 ### Overview
