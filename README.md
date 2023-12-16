@@ -130,7 +130,10 @@ Keywords: Transportablity, Cardiovascular Disease Events, Framingham Heart Study
 </details>
 
 ### Project Highlights
-
+Transportability Analysis:  
+<img src="images/proj3_hl1.png" alt="Transportability Analysis" width="550" height="450">    
+Simulation Performance:   
+<img src="images/proj3_hl2.png" alt="Transportability Analysis" width="550" height="450"> 
 
 ### Acknowledgement
 This project is a collaboration with Dr. Jon Steingrimsson in the Department of Biostatistics, Brown University School of Public Health. The instructor is Dr. Alice Paul from Department of Biostatistics, Brown University School of Public Health.
