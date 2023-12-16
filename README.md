@@ -71,6 +71,16 @@ Keywords: Tracheostomy, Regression Analysis, Respiratory Parameters
 </details>
 
 ### Project Highlights
+Model performance:   
+|                  | Best Subset (Fixed-Effect) M1 | Best Subset (Mixed-Effect) | Lasso (Fixed-Effect) M2 | Lasso (Mixed-Effect) |
+|------------------|-------------------------------|----------------------------|-------------------------|----------------------|
+| **AUC**          | **0.9106**                    | **0.9079**                 | 0.9068                  | 0.9054               |
+| **Sensitivity**  | **0.8485**                    | **0.8303**                 | 0.8000                  | 0.8121               |
+| **Specificity**  | **0.8582**                    | **0.8620**                 | 0.8646                  | 0.8456               |
+| **Accuracy**     | **0.8565**                    | **0.8565**                 | 0.8534                  | 0.8398               |
+| **Precision**    | **0.5556**                    | **0.5569**                 | 0.5523                  | 0.5234               |
+| **Brier Score**  | **0.0870**                    | **0.0865**                 | 0.0898                  | 0.0899               |
+| **Threshold**    | **0.1873**                    | **0.1873**                 | 0.1990                  | 0.2063               |
 
 
 ### Acknowledgement
