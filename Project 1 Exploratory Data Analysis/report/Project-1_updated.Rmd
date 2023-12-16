@@ -1,0 +1,729 @@
+---
+title: "Exploratory Analysis on Effects of SDP/ETS on Adolescent Self-regulation, Substance Use, and Externalizing"
+subtitle: "Project 1: Exploratory Data Analysis^[This project is a collaboration with Dr. Lauren Micalizzi from the Department Behavioral and Social Sciences, Brown University School of Public Health. The instructor is Dr. Alice Paul from Department of Biostatistics, Brown University School of Public Health.]"
+author: "Haiyue Song"
+date: "`r Sys.Date()`"
+output: 
+  pdf_document:
+    latex_engine: xelatex
+    keep_tex: true
+urlcolor: blue
+header-includes: 
+  - \usepackage{setspace}\singlespacing
+  - \usepackage{titling}
+  - \pretitle{\begin{centering}\Large\bfseries}
+  - \posttitle{\end{centering}}
+  - \usepackage{pdflscape}
+  - \usepackage{abstract}
+fontsize: 10pt
+abstract: >
+ \singlespacing \textbf{Background:} Exposure to smoking during pregnancy and environmental tobacco smoke are two of the most ubiquitous and hazardous of children's environmental exposures [@micalizzi_prenatal_2023; @paul_project_2023]. Early smoke exposure is linked to externalizing behaviors, self-regulation problems, and substance use. This project aims to conduct exploratory data analysis to examine the associations between smoking during pregnancy, environmental tobacco smoke exposure, and self-regulation, externalizing behavior, and substance use in adolescents.\par
+ \textbf{Methods:} Population in this study were recruited from a previous study on smoke avoidance intervention, aimed at reducing low-income women's smoking and environmental tobacco smoke exposure during pregnancy, as well as children's exposure to environmental tobacco smoke in the immediate postpartum period. A subset of adolescents (N=100) and their mothers were randomly selected for recruitment into this current study. After preprocessing, we described the missing data pattern, conducted univariate analyses of demographic variables, smoking exposure variables, and variables related to externalizing, self-regulation, and substance use; intercorrelations were then analyzed. Bivariate analysis was conducted to meet the project's research goals.\par
+ \textbf{Results:} The data accessed is the baseline data for the current study, including self-regulatory assessments, self-reported substance use, self-regulation, and EKG. After preprocessing, 49 observations of 78 variables were available. Significant missing data affected the exploratory data analysis. In terms of interrelationships, we found that prenatal and postnatal smoke exposure are mildly positively correlated. For variables related to self-regulation, externalizing, and substance use, some showed strong intercorrelations, respectively. Bivariate associations indicated that smoke exposure during the 2nd to 5th year is significantly associated with expressive suppression. For externalizing problems, smoke exposure from 0 to 6 months was associated with attention problems, externalizing problems, and two types of ADHD; prenatal smoke exposure was associated with attention problems evaluated by parents and ADHD - Hyperactive/Impulsive type.\par
+ \textbf{Conclusions:}  Based on bivariate analysis, different stages of early smoke exposure are associated with self-regulation, externalizing problems, and substance use, respectively. Further studies should consider improving the sample size and the quality of the data to obtain more powerful statistical associations. \par
+ \textbf{Keywords: Smoking during Pregnancy, Environmental Tobacco Smoke, Externalizing Behaviors, Self-regulation, Substance Use}
+geometry: margin=1in
+spacing: single
+csl: american-statistical-association.csl
+bibliography: references.bib
+link-citations: yes
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,
+                      message = FALSE,
+                      warning = FALSE, 
+                      fig.align="center")
+options(knitr.kable.NA = '')
+```
+
+```{r}
+# load the library
+library(tidyverse) # version 1.3.2
+library(kableExtra) # version 1.3.4
+library(mice) # version 3.15.0
+library(naniar) # version 1.0.0
+library(tableone) # version 0.13.2
+library(psych) # version 2.2.9
+library(GGally) # version 2.1.2
+library(ggpubr) # version 0.4.0
+library(gtsummary) # version 1.7.2
+# read the data
+new_df <- read.csv("project1.csv")
+```
+
+# 1. Introduction
+
+Exposure to smoking during pregnancy (SDP) and environmental tobacco smoke (ETS) are two of the most ubiquitous and hazardous of children's environmental exposures [@micalizzi_prenatal_2023; @paul_project_2023]. Early smoke-exposure increases rates of externalizing behaviors in children, including Attention-Deficit/Hyperactivity Disorder (ADHD), and rates of substance use problems, all of which have clear public health implications. Early smoke exposure is also linked to self-regulation problems, such as emotional regulation problems.
+
+In this project, our goal is to conduct exploratory data analysis to examine the association between smoking during pregnancy (SDP) and environmental tobacco smoke (ETS) exposure and self-regulation, externalizing behavior, and substance use on adolescent. The women in this study were recruited from a previous study on smoke avoidance intervention to reduce low-income women's (N=738) smoking and ETS exposure during pregnancy and children's exposure to ETS in the immediate postpartum period [@risica_tailored_2017]. A subset of adolescents (N=100) and their mothers are randomly selected for recruitment into this current study.
+
+# 2. Data Analysis
+
+## 2.1. Data Description
+The data includes a part of original study on smoke avoidance intervention to reduce low-income women's (N=738) smoking and ETS exposure during pregnancy and children's exposure to ETS in the immediate postpartum period [@risica_tailored_2017]. A subset of adolescents (N=100) and their mothers are randomly selected for recruitment into current study, and the data we access is the baseline data for the current study. At this baseline, self-regulatory assessments, self-reported substance use, self-regulation and EKG are recorded. 
+
+The data is filtered to the part of baseline data and is partially pre-processed with dropping and computation for comprehension variables; 49 observations of 78 variables are available. Firstly, the data includes the participant ID of parent, the demographic characteristics of the child and the parent, Autism Spectrum Disorder (ASD) information for the child from his/her parent. The summary statistics for demographic charateristics of child and parent are shown in Table 1.
+```{r}
+##### Updated: Summary for Demographic data
+new_df$tage <- as.numeric(new_df$tage)
+demo.data <- new_df %>%
+  mutate(
+    prace =  case_when(
+      pethnic == 1 ~ "Hispanic/Latino",
+      paian == 1 ~ "American Indian/Alaska Native",
+      pasian == 1 ~ "Asian",
+      pnhpi == 1 ~ "Native Hawaiian/Pacific Islander",
+      pblack  == 1 ~ "Black/African American",
+      pwhite == 1 ~ "White",
+      prace_other == 1 ~ "Other",
+      .default = NA
+    ),
+    trace = case_when(
+      tethnic == 1 ~ "Hispanic/Latino",
+      taian == 1 ~ "American Indian/Alaska Native",
+      tasian == 1 ~ "Asian",
+      tnhpi == 1 ~ "Native Hawaiian/Pacific Islander",
+      tblack  == 1 ~ "Black/African American",
+      twhite == 1 ~ "White",
+      trace_other == 1 ~ "Other",
+      .default = NA     
+    )
+  ) %>%
+  select(parent_id, page, psex, plang, prace, employ, pedu, income, tage, tsex, language, trace)
+
+# parent
+demo.parent <- demo.data %>% 
+  dplyr::select(parent_id, page, psex, plang, prace) %>% 
+  rename_with(~ sub("^p", "", .x), starts_with("p")) %>%
+  mutate(participant = "Parent")
+colnames(demo.parent)[c(1,4)] <- c("parent_id","language")
+
+
+# child
+demo.child <- demo.data %>% 
+  select(parent_id, tage, tsex, language, trace) %>% 
+  rename_with(~ sub("^t", "", .x), starts_with("t")) %>% 
+  mutate(participant = "Child")
+
+# Binding the two data frames
+tbl1 <- tbl_summary(bind_rows(demo.parent, demo.child)[,-1],
+            by = "participant",
+            type = all_continuous() ~ "continuous2",
+            statistic = list(
+              all_continuous() ~ c(
+                "{mean} ({sd}); {median} ({min}, {max})"
+              ),
+              all_categorical() ~ "{n} / {N} ({p}%)"),
+            digits = all_continuous() ~ 2,
+            missing_text = "(Missing)"
+) %>%
+  bold_labels()
+tbl1 %>%
+  modify_header(label="**Demographic Variable**") %>%
+  as_kable_extra(booktabs=TRUE,escape=TRUE, 
+                 caption="Summary Statistics for Demographic Information") %>%
+  kable_styling(
+    latex_options = c("repeat_header","striped")
+  ) 
+```
+For parents, we find that the age of parent has mean 37.54 with 3.57 standard deviation; 40 parents reported female sex; 15 parents speak another language at home; 13 parents identified as Hispanic or Latino; 26 parents are white; a few parents belong to American Indian/ Alaska Native/ Native Hawaiian or Pacific Islander and others; no Asian or black is reported from parents; 22 parents have full-time paid jobs, with 7 parents having part-time paid jobs and 12 parents not having paid jobs; 15 parents finished some college and 10 parents finished 4-year degree; the family's annual income has mean 63138.05 with a great standard deviation of 59884.90. For children, their current age has mean 13.62 with standard deviation of 1.21; 23 children are male and 13 children are female; 11 children speak another language at home; 21 children are not Hispanic or Latino, while 15 children belongs to those, and 1 child preferred not to answer; 19 children are white and 15 children are black, as well as a few children are American Indian/ Alaska Native and others; no Asian and Native Hawaiian or Pacific Islander is reported from children.
+
+The data also includes the self-reported smoking during pregnancy and in the immediate postpartum period from mom from original study, the self-reported smoking exposure from mom or partner from 0 months to 5 years postnatal from current study, the urine nicotine metabolite levels at 34 weeks gestation/6 months postpartum from mom and baby; these variables are mainly self-reported answers and fewer lab results, which are representing for SDP and ETS. SDP is based on the self-reported smoke status during pregnancy; ETS is based on the exposure to smoke during pregnancy and also postpartum. 
+
+Besides, the data includes the results of emotional regulation from parents and children, which are related to self-regulation; it also includes the attention and externalizing problems based on Brief Problem Monitor from the child and from the parent on self and on child, and also SWAN Rating Scale for ADHD from parent on child, which are related to externalizing problems; it finally includes current substance use of children and also their parents. All of these are evaluated in current study. 
+
+## 2.2. Additional Pre-processing
+
+We will firstly conduct some steps to clean the data and modify the data format. For the parent income variable, there is a record of "250,000", which is not identified as numeric data automatically, so we edited it to 250000. For the self-reported number of cigarettes smoked per day by mom, there is an answer of "2 black and miles a day", and we simply change it to 2. However, in a single black and mild, the tobacco is as harmful as 10 to 15 cigarettes and even more, we cannot make sure which number to replace, thus changing to 2 simply is part of limitations and problems of data quality. Besides, there is an answer of "20-25" in the same variable, we use 23 to simply replace it. And there is also an answer of "None" in the same variable, we use 0 to simply replace it. We fill all the blank in the data set as NA and then set the continuous variables as numeric variables and set the categorical ones as factors.
+
+There are four variables from four questions about intensity of child substance use, which are linked to their front questions about whether they have related substance use. If the front question has negative answer of no substance use, then the intensity question will not be asked. Thus there are some NAs related to this. Assume they are consistent, we fill the intensity of child substance use by 0 if they stated never had substance use. Additionally, for two SWAN rates of ADHD, they are some NAs wrongly processed as 0 in the previous pre-processing part, we use NA to replace them. The parent IDs are '50502', '51202', '51602', '52302', '53002', '53502', '53902', '54402', '54602', '54702', '55102' from checking of the raw data. We replace the 0s by NAs.
+
+```{r}
+###### clean the data and modify the format
+# income: there is a "250,000", change it to 250000
+new_df$income[6] <- 250000
+# mom_numcig: How many cigarettes per day do you usually smoke?
+# change 2 black and miles a day to 2
+new_df$mom_numcig[1] <- 2
+# change 20-25 cigarettes per day as 23
+new_df$mom_numcig[37] <- 23
+# change none cigarette per day as 0
+new_df$mom_numcig[47] <- 0
+# fill all records blank with NA
+new_df[new_df==""] <- NA
+# set the continuous variables as numeric data
+for(i in c(2,14,20,21,29:36,43:51,52,63,65,67,69:78)){
+  new_df[,i] <- as.numeric(new_df[,i])
+}
+# factorize the categorical data
+new_df <- new_df %>% 
+  mutate_if(is.character,as.factor)
+new_df <- new_df %>%
+  mutate_if(is.integer,as.factor)
+# change facter levels
+new_df <- new_df %>%
+  mutate(mom_smoke_16wk = factor(case_when(mom_smoke_16wk=="1=Yes"~1,
+                                   mom_smoke_16wk=="2=No"~0)),
+         mom_smoke_22wk = factor(case_when(mom_smoke_22wk=="1=Yes"~1,
+                                   mom_smoke_22wk=="2=No"~0)),
+         mom_smoke_32wk = factor(case_when(mom_smoke_32wk=="1=Yes"~1,
+                                   mom_smoke_32wk=="2=No"~0)),
+         mom_smoke_pp1= factor(case_when(mom_smoke_pp1=="1=Yes"~1,
+                                   mom_smoke_pp1=="2=No"~0)),
+         mom_smoke_pp2= factor(case_when(mom_smoke_pp2=="1=Yes"~1,
+                                   mom_smoke_pp2=="2=No"~0)),
+         mom_smoke_pp12wk =factor(case_when(mom_smoke_pp12wk=="1=Yes"~1,
+                                   mom_smoke_pp12wk=="2=No"~0)),
+         mom_smoke_pp6mo = factor(case_when(mom_smoke_pp6mo=="1=Yes"~1,
+                                   mom_smoke_pp6mo=="2=No"~0)))
+
+# fill 0 to intensity of substance use if they stated never
+new_df <- new_df %>%
+  mutate(num_cigs_30=case_when(cig_ever=="0"~0,
+                               cig_ever=="1"~num_cigs_30),
+         num_e_cigs_30=case_when(e_cig_ever=="0"~0,
+                            e_cig_ever=="1"~num_e_cigs_30),
+         num_mj_30=case_when(mj_ever=="0"~0,
+                             mj_ever=="1"~num_mj_30),
+         num_alc_30=case_when(alc_ever=="0"~0,
+                              alc_ever=="1"~num_alc_30))
+### replace 0 by NA for two swans (problem for previous pre-processing)
+# parent raw data
+parent_df <- read.csv("Project 1 Pre-Processing/K01BB.csv") %>%
+  filter(redcap_event_name == "parent_baseline_arm_2") %>%
+  select(c(parent_id, page:chart23)) 
+# get wrong IDs
+wrong_IDs <- parent_df$parent_id[which(
+  rowSums(is.na(parent_df %>%
+                  select(swan_p_on_c_timestamp:swan_p_on_c_complete)))==18)]
+# replace the 0s by NAs
+new_df$swan_hyperactive[new_df$parent_id %in% wrong_IDs] <- NA
+new_df$swan_inattentive[new_df$parent_id %in% wrong_IDs] <- NA
+```
+
+## 2.3. Outliers
+
+After exploring the data, firstly there is no duplicated data. Then, I found that there is an record of 44989 in the variable of `mom_numcig`, representing for the self-reported number of cigarettes smoked per day by mom. This is identified as an outlier. 
+
+```{r}
+###### outliers
+# 44989 cigarettes per day is an outlier
+# new_df$mom_numcig[26]
+```
+
+## 2.4. Missing Data
+There is much missing data after pre-processing as Section 2.2. There is no complete entry in this data set and there are 8 records with at least 57 variables missing. Table 2 gives an overview of missingness of each variable. For 5 variables with the first five greatest percentages of missing, there is 39 (79.59%) records of missing in `mom_smoke_pp1` representing for self-reported smoker status at first postpartum visit. 28 (57.14%) records has `childasd` missing, which is the variable for the child ASD status. Then, 20 (40.82%) records has `mom_smoke_pp2` missing, which is the variable for the self-reported smoker status at the second postpartum visit. 16 (32.65%) records are missing for `pmq_parental_control`, which is the average response on the Parental Knowledge Questionnaire on items related to parental control. 15 (30.61%) records are missing for `ppmq_parental_solicitation`, which is the average response on the Parental Knowledge Questionnaire on items related to parental solicitation.
+```{r}
+###### Missing Data
+# calculate the number and percentage of missing in each column
+num_na <- sapply(new_df,function(x) sum(is.na(x)))
+pct_na <- round(num_na/dim(new_df)[1]*100,2)
+missing_stat <- data.frame(num=num_na,pct=pct_na)
+missing_stat <- missing_stat[order(missing_stat[,2],decreasing=T),]
+missing_stat$Variable <- rownames(missing_stat)
+rownames(missing_stat) <- NULL
+missing_stat <- missing_stat[,c(3,1,2)]
+# table for missing data
+kable(cbind(missing_stat[1:39,],missing_stat[40:78,]),
+      caption = "Missing Data in Each Variable",booktabs = TRUE, longtable = T, escape = T, 
+      col.names = rep(c("Variable","Number","Percentage(%)"),2),align = "c") %>%
+  kable_styling(font_size = 7,latex_options = c("repeat_header"))
+```
+
+```{r,eval=FALSE}
+### missing pattern of demographic characteristics (not displayed in report)
+md.pattern(new_df %>% select(tage:trace_other))
+md.pattern(new_df %>% select(page:income))
+```
+
+Then, we explored the missing pattern across variables. For demographic characteristics for children, as in Table 1, there are 1 record with missing of sex, and 12 records with missing of age, another language, ethnic, and also sex. For the demographic characteristics for parent, there are 4 records with missing of income, as well as 8 records with missing of age, sex, another language, ethnic, employment status, education level and income.
+
+For the variables related to SDP and ETS, we are going to explore the variables related to the self-reported smoking during pregnancy and in the immediate postpartum period from mom, the self-reported smoking exposure from mom or partner from 0 months to 5 years postnatal, the urine nicotine metabolite levels at 34 weeks gestation/6 months postpartum from mom and baby. There is a record with all of these variables missing. Then, separately, for the self-reported smoking during pregnancy and in the immediate postpartum period from mom, from Figure 1 (left), we can see that mainly there are 22 cases with only missingness at first postpartum visit, and there are 9 cases with only missingness at the second postpartum visit; there are some cases with different combinations of missingness here; 1 case shows missingness across all time; most of missing data is happened at first postpartum visit, as we displayed in Table 2. Then, for the self-reported smoke exposure, from Figure 1 (right) below, we can see that there are 10 cases having all missing data of self-reported exposure, as well as 1 case having missing in the 3rd and 4th year.
+
+```{r,fig.show="hold",fig.cap="The combinations of missingness for self-reported smoker (left) or smoke exposure (right)",out.width="49%",out.height="49%"}
+### missing pattern of SDP and ETS
+# md.pattern(new_df %>% select(mom_smoke_16wk:mom_smoke_pp6mo),rotate.names = T)
+gg_miss_upset(new_df %>% select(mom_smoke_16wk:mom_smoke_pp6mo),
+              nsets = n_var_miss(new_df %>% select(mom_smoke_16wk:mom_smoke_pp6mo)))
+# missing for self-reported smoke exposure
+gg_miss_upset(new_df %>% select(smoke_exposure_6mo:smoke_exposure_5yr),
+              nsets = n_var_miss(new_df %>% select(smoke_exposure_6mo:smoke_exposure_5yr)))
+```
+
+For the urine nicotine metabolite levels, 6 cases have missingness at week 34 pregnant, 6 cases have missingness at 6 months postpartum for both mom and baby, and 6 cases have missingness of cotimean across the time from mom and baby. 
+
+For variables related to self-regulation of child and parent, there are 8 cases with all 4 variables missing, 4 cases with missing from child's answers, 2 cases with missing from parent's answers, both cognitive reappraisal and expressive suppresion answers from child also have 1 record missing. For variables related to externalizing problems, there are 8 cases with all missing of Brief Problem Monitor results and SWAN rating results, and there are 2 cases with missing from Brief Problem Monitor of child as well as 2 cases with only Brief Problem Monitor of child is complete. Finally, for variables related to substance use, we find that there are 8 cases with all missing of substance use from child and parent, 4 cases with missing of substance use from child, 1 case with missing of substance use from parent, as well as other cases with different combinations.
+
+```{r,eval=F,fig.cap="The combinations of missingness for cotimean level",out.width="60%",out.height="60%"}
+# missing for cotimean level (not shown in report)
+gg_miss_upset(new_df %>% select(cotimean_34wk,cotimean_pp6mo,cotimean_pp6mo_baby),
+              nsets = n_var_miss(new_df %>%
+                                   select(cotimean_34wk,cotimean_pp6mo,
+                                          cotimean_pp6mo_baby)))
+```
+
+```{r,eval=F,fig.cap="The combinations of missingness for self regulation",out.width="60%",out.height="60%"}
+# missing for self regulation
+gg_miss_upset(new_df %>% select(erq_cog,erq_exp,erq_cog_a,erq_exp_a),
+              nsets = n_var_miss(new_df %>% select(erq_cog,erq_exp,erq_cog_a,erq_exp_a)))
+```
+
+```{r,eval=F,fig.cap="The combinations of missingness for externalizing",out.width="60%",out.height="60%"}
+# missing for externalizing
+gg_miss_upset(new_df %>% 
+                select(bpm_att,bpm_ext,
+                       bpm_att_p,bpm_ext_p,
+                       bpm_att_a,bpm_ext_a,
+                       swan_hyperactive,swan_inattentive),
+              nsets = n_var_miss(new_df %>% 
+                select(bpm_att,bpm_ext,
+                       bpm_att_p,bpm_ext_p,
+                       bpm_att_a,bpm_ext_a,
+                       swan_hyperactive,swan_inattentive)))
+
+```
+
+```{r,eval=F,fig.cap="The combinations of missingness for substance use",out.width="60%",out.height="60%"}
+# missing for substance use
+gg_miss_upset(new_df %>% 
+                select(cig_ever:num_alc_30, nidaalc:mom_numcig),
+              nsets = n_var_miss(new_df %>% 
+                select(cig_ever:num_alc_30, nidaalc:mom_numcig)))
+```
+
+Overall, there is great missing the data. Therefore, it is hard to conduct proper analysis to obtain proper estimate. Especially when there are many cases having relevant variables missing at the same time, making the exploratory analysis more difficult. And the complete sample size decreases obviously when we analyze intercorrelations and bivariate associations. This is part of data quality problem.
+
+```{r,eval=F}
+# overall missingness (not displayed in report)
+md.pattern(new_df)
+gg_miss_var(new_df)
+```
+
+## 2.5. Univariate Analysis
+Next, we conduct univariate analysis by descriptive statistics. We firstly check the variables related to SDP/ETS. As there are many pieces of missing among these variables, for each smoker status or smoke exposure variable, about 25% - 40% of complete data of that variable reported as smoker or having smoke exposure. For the urine cotimean, the results at week 34 gestation has mean 49.75 with standard deviation of 97.69; the results at 6 months postpartum from mom has mean 100.49 with standard deviation of 179.34, which are much higher than those at week 34 gestation; the results at 6 months postpartum from baby has mean of 4.04 with standard deviation of 7.62, which meets expectation. The full descriptive statistics are in Appendix. 
+
+```{r}
+# descriptive statistics for variables related to SDP
+tbl.SDP <- tbl_summary(new_df[,c(22:31)],
+            type = all_continuous() ~ "continuous2",
+            statistic = list(
+              all_continuous() ~ c(
+                "{mean} ({sd}); {median} ({min}, {max})"
+              ),
+              all_categorical() ~ "{n} / {N} ({p}%)"),
+            digits = all_continuous() ~ 2,
+            missing_text = "(Missing)"
+) %>%
+  bold_labels()%>%
+  modify_header(label="**Variable**") %>%
+  as_kable_extra(booktabs=TRUE,escape=TRUE, 
+                 caption="Summary Statistics for SDP") %>%
+  kable_styling(
+    latex_options = c("repeat_header","striped",'hold_position')
+  ) 
+# descriptive statistics for variables related to ETS
+tbl.ETS <- tbl_summary(new_df[,c(37:42)],
+            type = all_continuous() ~ "continuous2",
+            statistic = list(
+              all_continuous() ~ c(
+                "{mean} ({sd}); {median} ({min}, {max})"
+              ),
+              all_categorical() ~ "{n} / {N} ({p}%)"),
+            digits = all_continuous() ~ 2,
+            missing_text = "(Missing)"
+) %>%
+  bold_labels()%>%
+  modify_header(label="**Variable**") %>%
+  as_kable_extra(booktabs=TRUE,escape=TRUE, 
+                 caption="Summary Statistics for ETS") %>%
+  kable_styling(
+    latex_options = c("repeat_header","striped",'hold_position')
+  )
+# kableone(CreateTableOne(data=new_df,vars=names(new_df)[c(22:31,37:42)])) %>%
+#   kable_styling(full_width=T, font_size=7,latex_options = c('HOLD_position'))
+```
+
+
+```{r,eval=F}
+# Descriptive statistics for variables related to 
+# self-regulation, externalizing and substance use
+kableone(CreateTableOne(data=new_df,vars=names(new_df)[c(16:21,32:36,43:51,62:74)])) %>%
+  kable_styling(full_width=T, font_size=9,latex_options = c('HOLD_position'))
+```
+
+Then, Table 3 shows the summary of statistics for variables related to the self-regulation. We can see the difference of mean and standard deviation of average response between parent and the child. The first two rows are for the average response on the Emotion Regulation Questionaire related to Cognitive Reappraisal from child and the average response on the Emotion Regulation Questionaire related to Expressive Suppression from child. The last two rows are from parent. We can see that the average responses on the Emotion Regulation Questionaire related to Cognitive Reappraisal from parents are generally higher than those from children; but for the average responses on the Emotion Regulation Questionaire related to Expressive Suppression, we can see the values from parents have a greater range; this can also be observed in Figure 2. 
+
+```{r}
+# summary of statistics for self-regulation
+des1 <- describe(cbind(new_df$erq_cog,new_df$erq_exp,new_df$erq_cog_a,new_df$erq_exp_a))
+des1$skew <- des1$ kurtosis <- 
+  des1$trimmed <- des1$mad <- des1$se <- NULL
+des1<-round(des1,2)
+des1$vars <- c("erq_cog","erq_exp","erq_cog_a","erq_exp_a")
+# create the kable for display
+des1 %>%
+  kable(row.names = FALSE,
+        caption = "Summary statistics for variables related to self regulation",
+        booktabs=T,longtable=T) %>%
+  kable_styling(full_width=T, font_size = 9,latex_options = c("striped")) %>%
+  footnote(threeparttable = TRUE,
+  general="Four variables above refer to (1) Average response on ERQ related to Cognitive Reappraisal (child), (2) Average response on ERQ related to Expressive Suppression (child), (3) Average response on ERQ related to Cognitive Reappraisal (parent), (4) Average response on ERQ related to Expressive Suppression (parent).")
+```
+
+Table 4 shows the summary of statistics for variables related to externalizing problems. The first two row are from children, the 3rd and 4th rows are from parent on child, the 5th and 6th row are from parent on self. These are about sum of responses on the Brief Problem Monitor (BPM) on items related to attention problems or externalizing problems. Besides, the last two rows are for SWAN rates related to ADHD. We can see that the sum of responses from BPM related to attention problems or externalizing problems from children has higher mean, median, standard deviation and range. 
+
+```{r}
+# summary of statistics for externalizing
+des2 <- describe(cbind(new_df$bpm_att,new_df$bpm_ext,
+                                new_df$bpm_att_a,new_df$bpm_ext_a,
+                                new_df$bpm_att_p,new_df$bpm_ext_p,
+                                new_df$swan_hyperactive,new_df$swan_inattentive))
+des2$skew <- des2$ kurtosis <- 
+  des2$trimmed <- des2$mad <- des2$se <- NULL
+des2<-round(des2,2)
+des2$vars <- c("bpm_att","bpm_ext","bpm_att_a","bpm_ext_a",
+               "bpm_att_p","bpm_ext_p","swan_hyperactive","swan_inattentive")
+# create the kable for display
+des2 %>%
+  kable(row.names = FALSE,
+        caption = "Summary statistics for variables related to externalizing problems",
+        booktabs=T,longtable=T) %>%
+  kable_styling(full_width=T, font_size = 9,latex_options = c('HOLD_position')) %>%
+  footnote(threeparttable = TRUE,
+  general="Eight variables above refer to (1) the sum of responses on the Brief Problem Monitor on items related to attention problems from child on self, (2) the sum of responses on the Brief Problem Monitor on items related to externalizing problems from child on self, (3) the sum of responses on the Brief Problem Monitor on items related to attention problems from parent on self, (4) the sum of responses on the Brief Problem Monitor on items related to externalizing problems from parent on self, (5) the sum of responses on the Brief Problem Monitor on items related to attention problems from parent on child, (6) the sum of responses on the Brief Problem Monitor on items related to externalizing problems from parent on child, (7) SWAN rating for ADHD- Hyperactive/Impulsive type, (8) SWAN rating for ADHD- Inattentive type.")
+```
+
+```{r,fig.show='hold',out.width="49%",out.height="49%",fig.cap="Descriptive Plot"}
+# Descriptive Plot for self-regulation variables (not displayed in report)
+df_plot1 <- data.frame(variable=c(rep("erq_cog",49),rep("erq_exp",49),
+                                  rep("erq_cog_a",49),rep("erq_exp_a",49)),
+                       values=c(new_df$erq_cog,new_df$erq_exp,new_df$erq_cog_a,new_df$erq_exp_a))
+ggplot(df_plot1, aes(x = variable, y = values, fill = variable)) +
+  geom_boxplot(outlier.shape = NA, alpha = 0.7) +  # boxplot without showing the outliers
+  geom_jitter(position = position_jitter(width = 0.2), alpha = 0.5) +  # add jitter
+  labs(title = "Self-regulation variables", x = "Variable", y = "Value") +
+  theme_minimal()
+# Descriptive Plot for externalizing (not displayed in report)
+df_plot2 <- data.frame(variable=c(rep("bpm_att",49),rep("bpm_ext",49),
+                                  rep("bpm_att_a",49),rep("bpm_ext_a",49),
+                                  rep("bpm_att_p",49),rep("bpm_ext_p",49),
+                                  rep("swan_hyperactive",49),rep("swan_inattentive",49)),
+                       values=c(new_df$bpm_att,new_df$bpm_ext,
+                                new_df$bpm_att_a,new_df$bpm_ext_a,
+                                new_df$bpm_att_p,new_df$bpm_ext_p,
+                                new_df$swan_hyperactive,new_df$swan_inattentive))
+ggplot(df_plot2, aes(x = variable, y = values, fill = variable)) +
+  geom_boxplot(outlier.shape = NA, alpha = 0.7) +  # boxplot without showing the outliers
+  geom_jitter(position = position_jitter(width = 0.2), alpha = 0.5) +  # add jitter
+  labs(title = "Externalizing variables", x = "Variable", y = "Value") + 
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+```
+From Figure 2 (right), we can see that SWAN rates have different scale. As we know a score of 6 or greater indicates the child is likely ADHD, we see that many children are likely ADHD Hyperactive/Impulsive type or ADHD Inattentive type.
+
+## 2.6. Prenatal and Postnatal Smoke Exposure Intensity Calculation
+For the next step, before we analyzing the bivariate relationships, we are going to create two variable for intensity of prenatal and postnatal respectively. For intensity of prenatal, which can also be treated as the intensity of SDP, we are going to sum up the self-reported smoker status at 16, 22 and 32 weeks pregnant, which shows the intensity of smoking during pregnancy. If there is any missing data for the self-reported smoker status at 16, 22 and 32 weeks pregnant, the intensity of prenatal smoke exposure is missing as NA. 
+
+As we have the urine cotimean at 34 week gestation from lab, we can refer to the lab results to see if smoker status at 32 weeks pregnant is reliable. Cotinine levels in a nonsmoker are generally less than 10 ng/mL; cotinine levels in a light smoker or someone exposed to secondhand smoke are 11 ng/mL to 30 ng/mL; cotinine levels in a heavy smoker may be more than 500 ng/mL. Most of cotimean results at week 34 pregnant meet our expectation when comparing to self-reported smoker status at week 32 pregnant. However, a parent that had 22.10 ng/mL cotinine level reported non-smoker at 32 weeks pregnant; another parent has 16.94 ng/mL cotinine level reported non-smoker as well; we do not know the real situation whether the parent was a light smoker or was exposed to secondhand smoke, this also might be a data quality problem. While the correlation between the urine cotimean at 34 week gestation and the `SDP` we created for smoking intensity during pregnancy is 0.81, which makes us think `SDP` is to some extent reliable.
+
+```{r}
+###### Prenatal and Postnatal Smoke Exposure Intensity Calculation
+# create variable for SDP and its intensity
+new_df$SDP <- factor(ifelse(new_df$mom_smoke_16wk==1 | 
+                       new_df$mom_smoke_22wk==1 | 
+                       new_df$mom_smoke_32wk==1,1,0))
+new_df <- new_df %>%
+  mutate(SDP_intensity=as.numeric(as.character(mom_smoke_16wk))+
+           as.numeric(as.character(mom_smoke_22wk))+
+           as.numeric(as.character(mom_smoke_32wk)))
+# cor(new_df$SDP_intensity,new_df$cotimean_34wk,use = "pairwise.complete.obs")
+```
+
+For the postnatal exposure to smoke, we have the smoke exposure variables from 0 to 6 months, from 7 to 12 months, and in each year from 2nd to 5th years. While for the smoke exposure from 0 to 6 months, there are also 6 other variables related, including the self-reported current smoker at first/ second postpartum visit and at 12 weeks/ 6 months postpartum, as well as urine cotimean at 6 months postpartum from mom and baby. As we explored before, from Table 1 and Figure 1, there are great missing values among the self-reported current smoker at first/ second postpartum visit. We leverge mainly from the self-reported current smoker at 12 weeks/ 6 months postpartum and urine cotimean at 6 months postpartum from mom and baby to revise the smoke exposure from 0 to 6 months, as if one variable shows smoke exposure from 0 to 6 months, we think that there was smoke exposure from 0 to 6 months.
+
+```{r}
+# revise the smoke exposure variable by leverage the other variable's information
+new_df$smoke_exposure_6mo_new <- factor(ifelse(new_df$smoke_exposure_6mo==1|
+           new_df$mom_smoke_pp12wk==1|new_df$mom_smoke_pp6mo==1|
+           new_df$cotimean_pp6mo >10 | new_df$cotimean_pp6mo_baby>10,1,0))
+# smoke exposure intensity for ETS
+new_df <- new_df %>%
+  mutate(smoke_exposure_intensity=as.numeric(as.character(new_df$smoke_exposure_6mo_new))+
+           as.numeric(as.character(new_df$smoke_exposure_12mo))+
+           as.numeric(as.character(new_df$smoke_exposure_2yr))+
+           as.numeric(as.character(new_df$smoke_exposure_3yr))+
+           as.numeric(as.character(new_df$smoke_exposure_4yr))+
+           as.numeric(as.character(new_df$smoke_exposure_5yr)))
+```
+
+Again, for intensity of postpartum smoke exposure, we sum the smoke exposure variables from 0 to 6 months, from 7 to 12 months, and in each year from 2nd to 5th years, which shows the intensity of smoke exposure of child. If there is any missing data during this period, the intensity of postpartum smoke exposure is missing as NA.
+
+The intensity of SDP refers to the prenatal exposure intensity, while the intensity of ETS refers to both the prenatal exposure intensity and the postnatal intensity. 
+
+## 2.7. Intercorrelations
+
+After checking the correlation between prenatal and postnatal smoke exposure, we find the Pearson's correlation is 0.50, and we can see positive relationship obviously from Figure 3. We guess that they are not very strongly correlated because the smoke exposure postpartum also includes the smoking information from other family members living together; besides, the prenatal data is from the original study, but mainly the postnatal data is from the current study. As in Figure 3, we can see as there are few complete data, the correlation is not a strong result and may be biased, which is also part of data quality problems.
+
+```{r,fig.show="hold",fig.cap="Interrelationship Plots",out.height="49%",out.width="49%"}
+# Interrelationship between Prenatal and Postnatal Smoke Exposure
+# pairs.panels(new_df %>% select(mom_smoke_16wk:mom_smoke_32wk,smoke_exposure_6mo_new,
+                               # smoke_exposure_12mo:smoke_exposure_5yr),stars = T)
+# cor(new_df$SDP_intensity,new_df$smoke_exposure_intensity,use = "pairwise.complete.obs")
+# pairs.panels(new_df %>% select(SDP_intensity,smoke_exposure_intensity))
+ggplot(new_df,aes(x=SDP_intensity,y=smoke_exposure_intensity))+
+  geom_jitter()+ # UPDATE: add jitter
+  geom_smooth(method = "lm", se = T) +
+  theme_minimal()+
+  labs(x="Prenatal Exposure Intensity",y="Postnatal Exposure Intensity",
+       title = "Prenatal and Postnatal Smoke Exposure")
+ggplot(new_df,aes(x=swan_hyperactive,y=swan_inattentive))+
+  geom_jitter()+ # UPDATE: add jitter
+  geom_smooth(method = "lm", se = T) +
+  theme_minimal()+
+  labs(x="ADHD- Hyperactive/Impulsive type",
+                y="ADHD- Inattentive type",
+       title = "ADHD")
+```
+
+For the self regulation variables, after calculating correlation coefficients as they are continuous variables, we find that these correlation coefficients are close to 0, with most of them having absolute values less than 0.2. While the average response on the Emotion Regulation Questionnaires related to Expressive Suppression has 0.26 correlation coefficient between parent and child.
+
+```{r, eval=F}
+# interrelationship in self-regulation variables (not displayed in report)
+pairs.panels(new_df %>% select(erq_cog,erq_exp,erq_cog_a,erq_exp_a),stars = T)
+```
+For the externalizing variables, we have that the SWAN ratings between ADHD- Hyperactive/Impulsive type and ADHD- Inattentive type show highest correlation of 0.78 significantly, as shown in Figure 3. Two SWAN ratings for ADHD shows significant positive correlation with the other measures for attention and externalizing problems from BPM. Besides, the measures for attention problems from BPM are strongly correlated between from child on self and from parent on child signficantly ($\rho=0.66$), while the measures for externalizing problems are slightly correlated between from child on self and from parent on child and not signficant ($\rho=0.24$).
+```{r, eval=F}
+# interrelationship in externalizing variables (not displayed in report)
+pairs.panels(new_df %>% select(bpm_att,
+                               bpm_ext,
+                               bpm_att_p,
+                               bpm_ext_p,
+                               swan_hyperactive,swan_inattentive),stars = T)
+```
+
+For the substance use variables, we can see that different categories of substance use are highly positive correlated, significantly. However, as the cases of substance use are limited, those correlations might be biased. 
+```{r,eval=F}
+# interrelationship in substance use variables (not displayed in report)
+pairs.panels(new_df %>% select(cig_ever,e_cig_ever,mj_ever,alc_ever,num_cigs_30,
+                               num_e_cigs_30,
+                               num_mj_30,
+                               num_alc_30)%>%
+               na.omit(),stars = T)
+```
+
+## 2.8. Bivariate Analysis
+Next, we are going to analysis bivariate relationships for to meet our research goal to examine the association between SDP/ETS and self-regulation, externalizing behavior, and substance use on adolescent.
+
+### 2.8.1. Association between SDP/ETS and Self-regulation
+We firstly check the association between prenatal smoke exposure and self-regulation problems on adolescent. We use both the self-reported smoker status from mom at 16/ 22/ 32 weeks pregnant and also the prenatal exposure intensity we created before. From correlation matrix, the prenatal smoke exposure has a little positive relationship with self-regulation problems on ERQ related to cognitive reappraisal ($\rho=0.090$) and ERQ related to expressive suppression ($\rho=0.109$) on adolescent. 
+
+```{r, eval= FALSE}
+###### bivariate Analysis
+# SDP vs self-regulation (not displayed in report)
+pairs.panels(new_df %>% select(mom_smoke_16wk:mom_smoke_32wk,
+                               erq_cog,erq_exp)%>%
+               na.omit(),stars=TRUE)
+
+# postnatal exposure intensity vs self-regulation (not displayed in report)
+ggpairs(new_df %>% select(SDP_intensity,smoke_exposure_intensity,
+                               erq_cog,erq_exp)%>%na.omit(),
+        lower = list(continuous = wrap("smooth", alpha = 0.7, size=0.5)))+
+  theme_bw()
+# postnatal exposure vs self-regulation (not displayed in report)
+pairs.panels(new_df %>% select(smoke_exposure_6mo_new,
+                               smoke_exposure_12mo:smoke_exposure_5yr,
+                               erq_cog,erq_exp)%>%
+               na.omit(),stars=TRUE)
+# significant parts: 2yr-5yr exposure vs self-regulation (not displayed in report)
+pairs.panels(new_df %>% select(smoke_exposure_2yr:smoke_exposure_5yr,
+                               erq_cog,erq_exp)%>%
+               na.omit(),stars=TRUE)
+```
+Then, we check the association between postnatal smoke exposure and self-regulation problems on adolescent. We find that the correlation between postnatal exposure intensity and the average response on the Emotion Regulation Questionnaires related to Expressive Suppression from child is 0.424, which is relatively high and significant. Furthermore, we use the time-series smoke exposure variables, and find the correlation coefficients between the smoke exposure in 2nd, 3rd, 4th and 5th year and the average response on the Emotion Regulation Questionnaires related to Expressive Suppression from child is around 0.48 to 0.50 signficantly. And we can also see the positive relationship in Figure 4. Children with smoke exposure in 2nd, 3rd, 4th and 5th year has more cases of higher expressive suppression. Referred to the questions related to Expressive Suppression from Emotion Regulation Questionnaires [@gross_individual_2003], we hold the opinion that a higher score on expressive suppression subscale indicates a greater tendency to use expressive suppression as an emotional regulation strategy, such as inhibiting or masking outward emotional expressions, which means worse situation of self regulation. Thus, I think that expressive suppression is associated with smoke exposure during 2nd, 3rd, 4th and 5th year.
+```{r,fig.cap="Smoke exposure during 2nd, 3rd, 4th and 5th year versus expressive suppression"}
+# smoke exposure in 2 - 5 year vs Expressive Suppression
+gg1 <- ggplot(new_df %>% rename(smoke_exposure=smoke_exposure_2yr),
+              aes(x=erq_exp,group=smoke_exposure,fill=smoke_exposure))+
+  geom_histogram(position = "dodge",binwidth = 0.5)+
+  labs(title="Smoke Exposure in 2nd Year",
+       x="Expressive Suppression",fill="Smoke Exposure (1=Yes, 0=No)")+
+  theme_minimal()+
+  theme(legend.position = "bottom")
+gg2 <- ggplot(new_df,aes(x=erq_exp,group=smoke_exposure_3yr, fill=smoke_exposure_3yr))+
+  geom_histogram(position = "dodge",binwidth = 0.5)+
+  labs(title="Smoke Exposure in 3rd Year",
+       x="Expressive Suppression",fill="Smoke Exposure (1=Yes, 0=No)")+
+  theme_minimal()+
+  theme(legend.position = "bottom")
+gg3 <- ggplot(new_df,aes(group=smoke_exposure_4yr,x=erq_exp,fill=smoke_exposure_4yr))+
+  geom_histogram(position = "dodge",binwidth = 0.5)+
+  labs(title ="Smoke Exposure in 4th Year",
+       x="Expressive Suppression",fill="Smoke Exposure (1=Yes, 0=No)")+
+  theme_minimal()+
+  theme(legend.position = "bottom")
+gg4 <- ggplot(new_df,aes(group=smoke_exposure_5yr,x=erq_exp,fill=smoke_exposure_5yr))+
+  geom_histogram(position = "dodge",binwidth = 0.5)+
+  labs(title="Smoke Exposure in 5th Year",
+       x="Expressive Suppression",fill="Smoke Exposure (1=Yes, 0=No)")+
+  theme_minimal()+
+  theme(legend.position = "bottom")
+ggarrange(gg1,gg2,gg3,gg4,nrow=2,ncol = 2,
+          common.legend = T,
+          legend = "bottom")
+```
+
+
+### 2.8.2. Association between SDP/ETS and Externalizing Problems
+We firstly check the association between prenatal smoke exposure and externalizing problems on adolescent. We use both the self-reported smoker status from mom at 16/ 22/ 32 weeks pregnant and also the prenatal exposure intensity we created before. We do not find useful pattern from 3 self-reported smoker status, while there are some pattern using the prenatal intensity variable. We find that the correlation between prenatal exposure intensity and the sum of responses on the Brief Problem Monitor on items related to attention problems from parent on child is 0.51 significantly, and the correlation between prenatal exposure intensity and the SWAN rating for ADHD- Hyperactive/Impulsive type is 0.58 significantly. We can also see the relationships from Figure 5. Higer intensity of prenatal smoke exposure means possibly more serious attention problems and ADHD problems for adolescents. However, as the number of cases is limited, the result is not very strong. 
+```{r,fig.cap="Prenatal Exposure Intensity and Externalizing Problems",out.height="80%",out.width="80%"}
+# association between prenatal smoke exposure and externalizing problems on adolescent
+# pairs.panels(new_df %>% select(SDP, smoke_exposure_intensity,
+#                                bpm_att,
+#                                bpm_ext,
+#                                bpm_att_p,
+#                                bpm_ext_p,
+#                                swan_hyperactive,swan_inattentive)%>%
+#                na.omit(),star=T)
+# pairs.panels(new_df %>% select(mom_smoke_16wk:mom_smoke_32wk,
+#                                bpm_att,
+#                                bpm_ext,
+#                                bpm_att_p,
+#                                bpm_ext_p,
+#                                swan_hyperactive,swan_inattentive))
+gg5 <- ggplot(new_df,aes(group=SDP,x=bpm_att_p,fill=SDP))+
+  geom_histogram(position = "dodge",binwidth = 1)+
+  labs(fill="Prenatal Smoke Exposure",
+       x="Subscale for attention problems from parent on child")+
+  theme_minimal()+
+  theme(legend.position = "bottom",
+        axis.title.x = element_text(size = 7))
+gg6 <- ggplot(new_df,aes(group=SDP,x=swan_hyperactive,fill=SDP))+
+  geom_histogram(position = "dodge",binwidth = 2)+
+  labs(fill="Prenatal Smoke Exposure",
+       x="SWAN rating for ADHD- Hyperactive/Impulsive type")+
+  theme_minimal()+
+  theme(legend.position = "bottom",
+        axis.title.x = element_text(size = 7))
+ggarrange(gg5,gg6,ncol = 2,
+          common.legend = T,
+          legend = "bottom")
+```
+Next, for the postnatal smoke exposure, though the intensity does not show strong relationship with externalizing problems, we further use time-series variables of smoke exposure and find some useful pattern. Especially for the smoke exposure during 0 to 6 months, it is strongly correlated with sum of responses on the Brief Problem Monitor for attention problems from child on self ($\rho=0.39$) and from parent on child ($\rho=0.47$), and sum of responses on the Brief Problem Monitor for externalizing problems from child on self ($\rho=0.40$) and from parent on child ($\rho=0.43$), as well as SWAN rating related to 
+ADHD- Hyperactive/Impulsive type ($\rho=0.45$) and ADHD- Inattentive type ($\rho=0.56$). Scatter plots are displayed in Figure 10 and we can see some postive relation to some extent. Besides, the sum of responses on the Brief Problem Monitor for externalizing problems from parent on child is also significantly correlated with smoke exposure in 3rd year ($\rho=0.39$) and in 4th year ($\rho=0.39$); the sum of responses on the Brief Problem Monitor for attention problems from parent on child is also significantly correlated with smoke exposure in 5th year ($\rho=0.46$). 
+
+Referred to the BRP [@aseba_aseba_2019] and also SWAN rating scales, we know that the higher response in BRP and the higher SWAN ratings means greater externalizing problems. Based on analysis above, we find that the smoke exposure is associated with externalizing problems, especially the smoke exposure from 0 to 6 months.  
+```{r,fig.cap="Smoke exposure from 0 to 6 months versus externalizing problems"}
+# smoke exposure versus externalizing problems
+# pairs.panels(new_df %>% select(smoke_exposure_6mo_new,
+#                                smoke_exposure_12mo:smoke_exposure_5yr,
+#                                bpm_att,
+#                                bpm_ext,
+#                                bpm_att_p,
+#                                bpm_ext_p,
+#                                swan_hyperactive,swan_inattentive)%>%
+#                na.omit(),star=T)
+
+# smoke exposure from 0 to 6 months versus externalizing problems
+gg7 <- ggplot(new_df,aes(group=smoke_exposure_6mo_new,x=bpm_att,
+                         fill=smoke_exposure_6mo_new))+
+  geom_histogram(position = "dodge",binwidth = 1)+
+  labs(fill="Smoke Exposure from 0 to 6 months",
+       x="Attention (child)")+
+  theme_minimal()+
+  theme(legend.position = "bottom",axis.title.y = element_text(size = 7))
+gg8 <- ggplot(new_df,aes(group=smoke_exposure_6mo_new,x=bpm_ext,
+                         fill=smoke_exposure_6mo_new))+
+  geom_histogram(position = "dodge",binwidth = 1)+
+  labs(fill="Smoke Exposure from 0 to 6 months",
+       x="Externalizing (child)")+
+  theme_minimal()+
+  theme(legend.position = "bottom",axis.title.y = element_text(size = 7))
+gg9 <- ggplot(new_df,aes(group=smoke_exposure_6mo_new,x=bpm_att_p,
+                         fill=smoke_exposure_6mo_new))+
+  geom_histogram(position = "dodge",binwidth = 1)+
+  labs(fill="Smoke Exposure from 0 to 6 months",
+       x="Attention (from parent)")+
+  theme_minimal()+
+  theme(legend.position = "bottom",axis.title.y = element_text(size = 7))
+gg10 <- ggplot(new_df,aes(group=smoke_exposure_6mo_new,x=bpm_ext_p,
+                         fill=smoke_exposure_6mo_new))+
+  geom_histogram(position = "dodge",binwidth = 1)+
+  labs(fill="Smoke Exposure from 0 to 6 months",
+       x="Externalizing (from parent)")+
+  theme_minimal()+
+  theme(legend.position = "bottom",axis.title.y = element_text(size = 7))
+gg11 <- ggplot(new_df,aes(group=smoke_exposure_6mo_new,x=swan_hyperactive,
+                         fill=smoke_exposure_6mo_new))+
+  geom_histogram(position = "dodge",binwidth = 2)+
+  labs(fill="Smoke Exposure from 0 to 6 months",
+       x="ADHD- Hyperactive/Impulsive type")+
+  theme_minimal()+
+  theme(legend.position = "bottom",axis.title.y = element_text(size = 7))
+gg12 <- ggplot(new_df,aes(group=smoke_exposure_6mo_new,x=swan_inattentive,
+                         fill=smoke_exposure_6mo_new))+
+  geom_histogram(position = "dodge",binwidth = 2)+
+  labs(fill="Smoke Exposure from 0 to 6 months",
+       x="ADHD- Inattentive type")+
+  theme_minimal()+
+  theme(legend.position = "bottom",axis.title.y = element_text(size = 7))
+ggarrange(gg7,gg8,gg9,gg10,gg11,gg12,nrow=3,ncol=2,common.legend = T,
+          legend = "bottom")
+```
+
+### 2.8.3. Association between SDP/ETS and Substance Use
+As Section 2.2. discussed, we filled the number of substance use in last 30 days as 0 if the child states that they never had such substance use. After exploring the pairwise relationship, we find prenatal smoke exposure has mildly positive correlation with the substance use on adolescent, while postnatal smoke exposure shows slight negative correlation with the substance use on adolescent. As limited cases of substance use on adolescent from the data set, it is hard to find useful patterns here, and the correlation may be biased, which is part of data quality problem. 
+```{r, eval=F}
+# Association between SDP/ETS and Substance Use (not displayed in report)
+pairs.panels(new_df %>% select(SDP_intensity,smoke_exposure_intensity,
+                              cig_ever,e_cig_ever,mj_ever,alc_ever)%>%
+               na.omit())
+pairs.panels(new_df %>% select(SDP_intensity,smoke_exposure_intensity,
+                               num_cigs_30,
+                               num_e_cigs_30,
+                               num_mj_30,
+                               num_alc_30)%>%
+               na.omit())
+pairs.panels(new_df %>% select(mom_smoke_16wk:mom_smoke_32wk,
+                               cig_ever,e_cig_ever,mj_ever,alc_ever,
+                               num_cigs_30,
+                               num_e_cigs_30,
+                               num_mj_30,
+                               num_alc_30)%>%
+               na.omit())
+pairs.panels(new_df %>% select(smoke_exposure_6mo_new,
+                               smoke_exposure_12mo:smoke_exposure_5yr,
+                               cig_ever,e_cig_ever,mj_ever,alc_ever,
+                               num_cigs_30,
+                               num_e_cigs_30,
+                               num_mj_30,
+                               num_alc_30)%>%
+               na.omit())
+```
+
+# 3. Conclusions and Limitations
+Exposure to smoking during pregnancy (SDP) and environmental tobacco smoke (ETS) are common and pose serious hazards as environmental factors affecting children. The exposure to smoke during early stages of development has been found to be associated with higher prevalence of externalizing behaviors in children, such as Attention-Deficit/Hyperactivity Disorder (ADHD), as well as increased rates of substance abuse problems [@micalizzi_prenatal_2023; @paul_project_2023]. In this exploratory data analysis project, our goal is to examine the association between smoking during pregnancy (SDP) and environmental tobacco smoke (ETS) exposure and self-regulation, externalizing behavior, and substance use on adolescent. Based on bivariate analysis, we find different stages of early smoke exposure are associated with self-regulation, externalizing problems and substance uses, respectively. 
+
+For interrelationship, we find that the prenatal and postnatal smoke exposure are mildly positive correlated ($\rho=0.50$). They are not strongly correlated as the reason might be the prenatal smoke exposure is only from self-reported mom smoker status, but the postnatal smoke exposure combines the information from other family members; and the prenatal data is from the original study, but the postnatal data is mainly from current study. Besides, as the complete cases of smoking exposure across the original study and current study of whole timeline is rare, the analysis is limited and may be biased. For variables related to self-regulation, externalizing, and substance use, we find some of them show strongly intercorrelations, respectively. To some extent, this also shows the data meets consistency. 
+
+For bivariate associations, firstly, for self-regulation, we find that the smoke exposure during 2nd to 5th year is associated with expressive suppresion, significantly. For externalizing problems, the smoke exposure from 0 to 6 months is associated with attention problems, externalizing problems, and two types of ADHD; the prenatal smoke exposure is associated with attention problems evaluated by parent on child and ADHD- Hyperactive/Impulsive type. Finally, for substance use, we find prenatal smoke exposure has mildly positive correlation with the substance use on adolescent, while postnatal smoke exposure shows slight negative correlation with the substance use on adolescent. Due the limited sample size, the association might be spurious. 
+
+For the limitations, firstly, as mentioned before, there are only 49 observations at baseline and there are many missing values in the data set. The sample size is quite small when we analyze some variables and require this part of data complete. This may lead to biased and insignificant results, as some special data records may totally change the analytics results. Secondly, some parts of data are self-reported and some are from reflection, which are part of data quality problems. Besides, we focus on analyze univariate and bivariate relationships. Without adjusting for the other covariates, the results is biased and not comparable among different groups of smoking exposure. For further study, we need control the other covariates properly and try to fit proper models to measure the association between SDP/ETS and self-regulation, externalizing behavior, and substance use on adolescent. 
+\pagebreak
+
+# References
+
+\singlespacing
+
+::: {#refs}
+:::
+
+\newpage
+# Appendix
+```{r}
+tbl.SDP
+tbl.ETS
+```
+
+\newpage
+# Code Appendix
+All code is compatible with R version 4.1.2, and can be found in the *Project 1 Exploratory Data Analysis* folder at [Github](https://github.com/haiyuesong/PHP2550-Final-Portfolio).
