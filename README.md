@@ -3,7 +3,7 @@
 
 ## Project 1
 ### Overview
-Exposure to smoking during pregnancy and environmental tobacco smoke are two of the most ubiquitous and hazardous of children's environmental exposures. Early smoke exposure is linked to externalizing behaviors, self-regulation problems, and substance use. This project aims to conduct exploratory data analysis to examine the associations between smoking during pregnancy, environmental tobacco smoke exposure, and self-regulation, externalizing behavior, and substance use in adolescents.
+Exposure to smoking during pregnancy and environmental tobacco smoke are two of the most ubiquitous and hazardous of children's environmental exposures. Early smoke exposure is linked to externalizing behaviors, self-regulation problems, and substance use. This project aims to conduct exploratory data analysis to examine the associations between smoking during pregnancy, environmental tobacco smoke exposure, and self-regulation, externalizing behavior, and substance use in adolescents. Please see `Project Highlights` for visualized results. 
 
 <details>
 <summary> Abstract</summary>
@@ -19,6 +19,13 @@ Keywords: Smoking during Pregnancy, Environmental Tobacco Smoke, Externalizing B
 </details>
 
 ### Project Highlights
+The plots of bivariate analysis are highlighted here.   
+Smoke exposure during 2nd, 3rd, 4th and 5th year versus expressive suppression: 
+<img src="images/proj1_hl1.png" alt="Smoke exposure during 2nd, 3rd, 4th and 5th year versus expressive suppression" width="500" height="300">
+Prenatal exposure intensity and externalizing problems: 
+<img src="images/proj1_hl2.png" alt="Prenatal exposure intensity and externalizing problems" width="500" height="300">
+Smoke exposure from 0 to 6 months versus externalizing problems: 
+<img src="images/proj1_hl3.png" alt="Smoke exposure from 0 to 6 months versus externalizing problems" width="500" height="300">
 
 ### Acknowledgement
 This project is a collaboration with Dr. Lauren Micalizzi from the Department Behavioral and Social Sciences at Brown School of Public Health. 
