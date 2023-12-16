@@ -72,20 +72,20 @@ This project is a collaboration with Dr. Jon Steingrimsson in the Department of 
 This data for this project is all publicly available. The data is obtained from R packages riskCommunicator_1.0.1 and nhanesA_0.7.4.
 
 ### Environment Version Information
-R_4.1.2
-tidyverse_1.3.2
-kableExtra_1.3.4
-gtsummary_1.7.2
-latex2exp_0.9.6
-ggpubr_0.4.0
-mice_3.15.0
-psych_2.2.9
-riskCommunicator_1.0.1
-nhanesA_0.7.4
-tableone_0.13.2
-caret_6.0-93
-MASS_7.3-58.2
-fitdistrplus_1.1-8
+- R_4.1.2  
+- tidyverse_1.3.2  
+- kableExtra_1.3.4  
+- gtsummary_1.7.2  
+- latex2exp_0.9.6  
+- ggpubr_0.4.0  
+- mice_3.15.0  
+- psych_2.2.9  
+- riskCommunicator_1.0.1  
+- nhanesA_0.7.4  
+- tableone_0.13.2  
+- caret_6.0-93  
+- MASS_7.3-58.2  
+- fitdistrplus_1.1-8  
 
 ### Guideline for Project 3 in this repository
 Files are in the `Project 3 Simulation Studies` folder. The `report` folder includes the updated report `Project3_updated.pdf` and the code for generating this report called `Project3_updated.Rmd`. The `code` folder includes the pre-processing code with exploratory data analysis called `project3_updated.R`, the code for calculating the Brier score when the individual-level data of NHANES are available called `evaluation_updated.R`, and the code for simulation studies called `simulation_updated.R`. The references `references.bib` in BibTeX can be found in the `references` folder. The pre-processed data can be found in the `pre-processed data` folder. The poster for this project is in the `poster` folder. 
