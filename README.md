@@ -21,11 +21,11 @@ Keywords: Smoking during Pregnancy, Environmental Tobacco Smoke, Externalizing B
 ### Project Highlights
 The plots of bivariate analysis are highlighted here.   
 Smoke exposure during 2nd, 3rd, 4th and 5th year versus expressive suppression: 
-<img src="images/proj1_hl1.png" alt="Smoke exposure during 2nd, 3rd, 4th and 5th year versus expressive suppression" width="500" height="300">
-Prenatal exposure intensity and externalizing problems: 
-<img src="images/proj1_hl2.png" alt="Prenatal exposure intensity and externalizing problems" width="500" height="300">
-Smoke exposure from 0 to 6 months versus externalizing problems: 
-<img src="images/proj1_hl3.png" alt="Smoke exposure from 0 to 6 months versus externalizing problems" width="500" height="300">
+<img src="images/proj1_hl1.png" alt="Smoke exposure during 2nd, 3rd, 4th and 5th year versus expressive suppression" width="500" height="300">  
+Prenatal exposure intensity and externalizing problems:   
+<img src="images/proj1_hl2.png" alt="Prenatal exposure intensity and externalizing problems" width="500" height="300">  
+Smoke exposure from 0 to 6 months versus externalizing problems:   
+<img src="images/proj1_hl3.png" alt="Smoke exposure from 0 to 6 months versus externalizing problems" width="500" height="300">   
 
 ### Acknowledgement
 This project is a collaboration with Dr. Lauren Micalizzi from the Department Behavioral and Social Sciences at Brown School of Public Health. 
