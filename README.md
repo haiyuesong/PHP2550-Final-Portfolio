@@ -3,6 +3,7 @@
 
 ## Project 1
 ### Overview
+Exposure to smoking during pregnancy and environmental tobacco smoke are two of the most ubiquitous and hazardous of children's environmental exposures. Early smoke exposure is linked to externalizing behaviors, self-regulation problems, and substance use. This project aims to conduct exploratory data analysis to examine the associations between smoking during pregnancy, environmental tobacco smoke exposure, and self-regulation, externalizing behavior, and substance use in adolescents.
 
 <details>
 <summary> Abstract</summary>
@@ -17,13 +18,17 @@ Conclusions:  Based on bivariate analysis, different stages of early smoke expos
 Keywords: Smoking during Pregnancy, Environmental Tobacco Smoke, Externalizing Behaviors, Self-regulation, Substance Use  
 </details>
 
+### Project Highlights
+
 ### Acknowledgement
-This project is a collaboration with Dr. Lauren Micalizzi from the Department Behavioral and Social Sciences at Brown School of Public Health. The data is not uploaded as it is confidential.
+This project is a collaboration with Dr. Lauren Micalizzi from the Department Behavioral and Social Sciences at Brown School of Public Health. 
 
 ### Data Availability
 The data of this project is confidential. It can only be shared with the instructor, students, and TA of this class. The data is not included in this github repository.
 
 ### Environment Version Information
+<details>
+<summary> R Environment</summary>
 - R_4.1.2
 - tidyverse_1.3.2  
 - kableExtra_1.3.4  
@@ -35,6 +40,7 @@ The data of this project is confidential. It can only be shared with the instruc
 - tableone_0.13.2
 - psych_2.2.9
 - GGally_2.1.2
+</details>
 
 ### Guideline for Project 1 in this repository
 Files are in the `Project 1 Exploratory Data Analysis` folder. The `report` folder includes the updated report `Project-1_updated.pdf` and the code for generating this report called `Project-1_updated.Rmd`. The `code` folder includes the pre-processing code `pre-processing.R` and exploratory data analysis code `EDA_code.R`. The references `references.bib` in BibTeX can be found in the `references` folder. 
@@ -57,6 +63,9 @@ Conclusions: The models incorporating respiratory parameters at 36-week postmens
 Keywords: Tracheostomy, Regression Analysis, Respiratory Parameters
 </details>
 
+### Project Highlights
+
+
 ### Acknowledgement
 This project is a collaboration with Dr. Chris Schmid in the Department of Biostatistics, Brown University School of Public Health. The instructor is Dr. Alice Paul from Department of Biostatistics, Brown University School of Public Health.
 
@@ -64,6 +73,8 @@ This project is a collaboration with Dr. Chris Schmid in the Department of Biost
 The data of this project is confidential. It can only be shared with the instructor, students, and TA of this class. The data is not included in this github repository. 
 
 ### Environment Version Information
+<details>
+<summary> R Environment</summary>
 - R_4.1.2
 - tidyverse_1.3.2  
 - kableExtra_1.3.4  
@@ -77,6 +88,7 @@ The data of this project is confidential. It can only be shared with the instruc
 - pROC_1.18.0  
 - ggplot2_3.4.2
 - lme4_1.1-31
+</details>
 
 ### Guideline for Project 2 in this repository
 Files are in the `Project 2 Regression Analysis` folder. The `report` folder includes the updated report `Project-2_updated.pdf` and the code for generating this report called `Project-2_updated.Rmd`. The `code` folder includes the pre-processing code with exploratory data analysis called `pre_processing_EDA_updated.R`; the code for best subset selection can be found in `best_subset_updated.R`; the code for Lasso regression can be found in `lasso_updated.R`; the code for mixed-effect models is in `multilevel.R`; `evaluation_updated.R` provides functions for the model performance evaluation. The references `references.bib` in BibTeX can be found in the `references` folder. 
@@ -100,6 +112,9 @@ Conclusions: The results indicate the excellent performance of transporting the 
 Keywords: Transportablity, Cardiovascular Disease Events, Framingham Heart Study, NHANES
 </details>
 
+### Project Highlights
+
+
 ### Acknowledgement
 This project is a collaboration with Dr. Jon Steingrimsson in the Department of Biostatistics, Brown University School of Public Health. The instructor is Dr. Alice Paul from Department of Biostatistics, Brown University School of Public Health.
 
@@ -107,6 +122,8 @@ This project is a collaboration with Dr. Jon Steingrimsson in the Department of 
 This data for this project is all publicly available. The data is obtained from R packages riskCommunicator_1.0.1 and nhanesA_0.7.4.
 
 ### Environment Version Information
+<details>
+<summary> R Environment</summary>
 - R_4.1.2  
 - tidyverse_1.3.2  
 - kableExtra_1.3.4  
@@ -120,7 +137,8 @@ This data for this project is all publicly available. The data is obtained from 
 - tableone_0.13.2  
 - caret_6.0-93  
 - MASS_7.3-58.2  
-- fitdistrplus_1.1-8  
+- fitdistrplus_1.1-8
+</details>
 
 ### Guideline for Project 3 in this repository
 Files are in the `Project 3 Simulation Studies` folder. The `report` folder includes the updated report `Project3_updated.pdf` and the code for generating this report called `Project3_updated.Rmd`. The `code` folder includes the pre-processing code with exploratory data analysis called `project3_updated.R`, the code for calculating the Brier score when the individual-level data of NHANES are available called `evaluation_updated.R`, and the code for simulation studies called `simulation_updated.R`. The references `references.bib` in BibTeX can be found in the `references` folder. The pre-processed data can be found in the `pre-processed data` folder. The poster for this project is in the `poster` folder. 
