@@ -71,7 +71,7 @@ Keywords: Tracheostomy, Regression Analysis, Respiratory Parameters
 </details>
 
 ### Project Highlights
-Model performance:   
+Model performance (M1 and M2 are the method 1 and method 2 for pooling results from multiple imputation data sets. Please see the report for details):   
 |                  | Best Subset (Fixed-Effect) M1 | Best Subset (Mixed-Effect) | Lasso (Fixed-Effect) M2 | Lasso (Mixed-Effect) |
 |------------------|-------------------------------|----------------------------|-------------------------|----------------------|
 | **AUC**          | **0.9106**                    | **0.9079**                 | 0.9068                  | 0.9054               |
